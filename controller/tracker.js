@@ -1,50 +1,25 @@
 const model = require('../model/schema');
-const { validateName, validatePassword, validateAge, validateGender, validatePhoneNumber, validateEmail, validatePincode, validateAddress, validateSpeciality, validateSlot, validateAppointment } = require("../utilities/validator");
+const { validateEmail, validateSpeciality, validateSlot, validateAppointment, validateUserDetails, validateAddressDetails } = require("../utilities/validator");
 const { generateId } = require("../utilities/helper");
 
 exports.registerUser = async (req, res) => {
     try {
-        const { name, password, dateOfBirth, gender, mobileNumber, email, pincode, city, state, country } = req.body;
+        const { email } = req.body;
 
-        if (!validateName(name)) {
+        const userValidator = validateUserDetails(req.body);
+        const addressValidator = validateAddressDetails(req.body);
+
+        if (userValidator.result === 'failure') {
             res.status(400).json({
-                message: "Name should have minimum 3 and maximum 50 characters"
-            });
-        } else if (!validatePassword(password)) {
-            res.status(400).json({
-                message: "Password should have minimum 5 and maximum 10 characters"
-            });
-        } else if (!validateAge(dateOfBirth)) {
-            res.status(400).json({
-                message: "Age should be greater than 20 and less than 100"
-            });
-        } else if (!validateGender(gender)) {
-            res.status(400).json({
-                message: "Gender should be either M or F"
-            });
-        } else if (!validatePhoneNumber(mobileNumber)) {
-            res.status(400).json({
-                message: "Mobile Number should have 10 digits"
+                message: userValidator.error
             });
         } else if (!validateEmail(email)) {
             res.status(400).json({
                 message: "Email should be a valid one"
             });
-        } else if (!validatePincode(pincode)) {
+        } else if (addressValidator.result === 'failure') {
             res.status(400).json({
-                message: "Pincode should have 6 digits"
-            });
-        } else if (!validateAddress(city)) {
-            res.status(400).json({
-                message: "City should have minimum 3 and maximum 20 characters"
-            });
-        } else if (!validateAddress(state)) {
-            res.status(400).json({
-                message: "State should have minimum 3 and maximum 50 characters"
-            });
-        } else if (!validateAddress(country)) {
-            res.status(400).json({
-                message: "Country should have minimum 3 and maximum 50 characters"
+                message: addressValidator.error
             });
         } else {
             const user = await model.usersModel.find({ email });
@@ -86,45 +61,37 @@ exports.loginUser = async (req, res) => {
 };
 
 exports.registerCoach = async (req, res) => {
-    const { name, password, dateOfBirth, gender, mobileNumber, speciality } = req.body;
+    try {
+        const { name, speciality } = req.body;
 
-    if (!validateName(name)) {
-        res.status(400).json({
-            message: "Name should have minimum 3 and maximum 50 characters"
-        });
-    } else if (!validatePassword(password)) {
-        res.status(400).json({
-            message: "Password should have minimum 5 and maximum 10 characters"
-        });
-    } else if (!validateAge(dateOfBirth)) {
-        res.status(400).json({
-            message: "Age should be greater than 20 and less than 100"
-        });
-    } else if (!validateGender(gender)) {
-        res.status(400).json({
-            message: "Gender should be either M or F"
-        });
-    } else if (!validatePhoneNumber(mobileNumber)) {
-        res.status(400).json({
-            message: "Mobile Number should have 10 digits"
-        });
-    } else if (!validateSpeciality(speciality)) {
-        res.status(400).json({
-            message: "Specilaity should have 10 to 50 characters"
-        });
-    } else {
-        const coach = await model.coachesModel.find({ name });
-        if (coach.length > 0) {
+        const userValidator = validateUserDetails(req.body);
+
+        if (userValidator.result === 'failure') {
             res.status(400).json({
-                message: "Coach exists with this name"
+                message: userValidator.error
+            });
+        } else if (!validateSpeciality(speciality)) {
+            res.status(400).json({
+                message: "Specilaity should have 10 to 50 characters"
             });
         } else {
-            const coachId = await generateId('coach');
-            await model.coachesModel.create({ coachId, ...req.body });
-            res.status(201).json({
-                message: `Coach created with id ${coachId}`
-            });
+            const coach = await model.coachesModel.find({ name });
+            if (coach.length > 0) {
+                res.status(400).json({
+                    message: "Coach exists with this name"
+                });
+            } else {
+                const coachId = await generateId('coach');
+                await model.coachesModel.create({ coachId, ...req.body });
+                res.status(201).json({
+                    message: `Coach created with id ${coachId}`
+                });
+            }
         }
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
     }
 };
 
@@ -150,6 +117,10 @@ exports.getCoaches = async (req, res) => {
     const coaches = await model.coachesModel.find({});
     if (coaches.length > 0) {
         res.status(200).json(coaches);
+    } else {
+        res.status(400).json({
+            message: 'Some issues occured while fetching'
+        });
     }
 }
 
@@ -207,7 +178,7 @@ exports.bookAppointment = async (req, res) => {
             });
         } else if (!validateSlot(slot)) {
             res.status(400).json({
-                message: "Slot should be valid [i.e., 9 AM - 8 PM] and it should be one hour"
+                message: "Slot should be valid [i.e., between 9 AM - 8 PM] and it should be one hour"
             });
         } else if (!validateAppointment(appointmentDate)) {
             res.status(400).json({

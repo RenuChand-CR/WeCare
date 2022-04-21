@@ -1,20 +1,60 @@
 const { convertHour } = require("./helper");
 
-exports.validateName = name => {
+exports.validateUserDetails = (consumer) => {
+    
+    const { name , password, dateOfBirth, gender, mobileNumber } = consumer;
+    console.log(consumer);
+    if (!name || !password || !dateOfBirth || !gender || !mobileNumber) {
+        return { result: "failure", error: "Please provide all mandatory fields"}
+    } else if (!validateName(name)) {
+        return { result: "failure", error: "Name should have minimum 3 and maximum 50 characters"};
+    } else if (!validatePassword(password)) {
+        return { result: "failure", error: "Password should have minimum 5 and maximum 10 characters"};
+    } else if (!validateAge(dateOfBirth)) {
+        return { result: "failure", error: "Age should be greater than 20 and less than 100"};
+    } else if (!validateGender(gender)) {
+        return { result: "failure", error: "Gender should be either M or F"};
+    } else if (!validatePhoneNumber(mobileNumber)) {
+        return { result: "failure", error: "Mobile Number should have 10 digits"};
+    } else {
+        return { result: "success" };
+    }
+};
+
+exports.validateAddressDetails = consumer => {
+
+    const { pincode , city, state, country } = consumer;
+
+    if (!pincode || !city || !state || !country) {
+        return { result: "failure", error: "Please provide all mandatory fields"}
+    } else if (!validatePincode(pincode)) {
+        return { result: "failure", error: "Pincode should have 6 digits"};
+    } else if (!validateAddress(city)) {
+        return { result: "failure", error: "City should have minimum 3 and maximum 20 characters"};
+    } else if (!validateAddress(state)) {
+        return { result: "failure", error: "State should have minimum 3 and maximum 20 characters"};
+    } else if (!validateAddress(country)) {
+        return { result: "failure", error: "Country should have minimum 3 and maximum 20 characters"};
+    } else {
+        return { result: "success" };
+    }
+};
+
+const validateName = name => {
     if (name.trim().length >= 3 && name.trim().length <= 50) {
         return true;
     }
     return false;
 }
 
-exports.validatePassword = pass => {
+const validatePassword = pass => {
     if (pass.length >= 5 && pass.length <= 10) {
         return true;
     }
     return false;
 }
 
-exports.validateAge = dob => {
+const validateAge = dob => {
     const today = new Date();
     const birthDay = new Date(dob);
 
@@ -35,14 +75,14 @@ exports.validateAge = dob => {
     return false;
 }
 
-exports.validateGender = gender => {
+const validateGender = gender => {
     if(['F', 'M'].includes(gender)) {
         return true;
     }
     return false;
 }
 
-exports.validatePhoneNumber = ph => {
+const validatePhoneNumber = ph => {
     if(ph.toString().length === 10) {
         return true;
     }
@@ -56,14 +96,14 @@ exports.validateEmail = mailId => {
     return false;
 }
 
-exports.validatePincode = pin => {
+const validatePincode = pin => {
     if(pin.toString().length === 6){
         return true;
     }
     return false;
 }
 
-exports.validateAddress = (value) => {
+const validateAddress = (value) => {
     if(value.length >= 3 && value.length <= 20) {
         return true;
     }
