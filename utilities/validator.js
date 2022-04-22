@@ -3,7 +3,7 @@ const { convertHour } = require("./helper");
 exports.validateUserDetails = (consumer) => {
     
     const { name , password, dateOfBirth, gender, mobileNumber } = consumer;
-    console.log(consumer);
+    
     if (!name || !password || !dateOfBirth || !gender || !mobileNumber) {
         return { result: "failure", error: "Please provide all mandatory fields"}
     } else if (!validateName(name)) {
@@ -76,7 +76,7 @@ const validateAge = dob => {
 }
 
 const validateGender = gender => {
-    if(['F', 'M'].includes(gender)) {
+    if(['F', 'M'].includes(gender.toUpperCase())) {
         return true;
     }
     return false;

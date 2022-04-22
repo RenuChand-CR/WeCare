@@ -2,12 +2,12 @@ const model = require('../model/schema');
 
 const getCurrentId = async (model, defaultId, idName) => {
     try {
-        const count = model.count();
+        const count = await model.countDocuments();
         if (count == 0) {
             return defaultId;
         } else {
             const documents = await model.aggregate([{ $project: { '_id': 0, [idName]: 1 } }, { $sort: { [idName]: -1 } }, { $limit: 1 }]);
-            return documents[0][idName];
+            return documents[0] && documents[0][idName];
         }
     } catch (err) {
         let error = new Error(err.message);
@@ -20,17 +20,17 @@ exports.generateId = async field => {
     let id, currentId, currentNumber, prefix;
     switch (field) {
         case 'user': {
-            currentId = await getCurrentId(model.usersModel, 'UI-0001', 'userId');
+            currentId = await getCurrentId(model.usersModel, 'UI-0000', 'userId');
             prefix = "UI-";
             break;
         }
         case 'coach': {
-            currentId = await getCurrentId(model.coachesModel, 'CI-0001', 'coachId');
+            currentId = await getCurrentId(model.coachesModel, 'CI-0000', 'coachId');
             prefix = "CI-";
             break;
         }
         case 'booking': {
-            currentId = await getCurrentId(model.bookingsModel, 'B-0001', 'bookingId');
+            currentId = await getCurrentId(model.bookingsModel, 'B-0000', 'bookingId');
             prefix = "B-";
             break;
         }
